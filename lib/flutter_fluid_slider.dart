@@ -79,7 +79,7 @@ class FluidSlider extends StatefulWidget {
   ///
   /// If null, the slider will be displayed as disabled.
 
-  final ValueChanged<double>? /*?*/ onChanged;
+  final ValueChanged<double>? onChanged;
 
   /// Called when the user starts selecting a new value for the slider.
   ///
@@ -158,11 +158,11 @@ class FluidSlider extends StatefulWidget {
 
 class _FluidSliderState extends State<FluidSlider>
     with SingleTickerProviderStateMixin {
-  double? _sliderWidth;
-  double _currX = 0.0;
+  late double _sliderWidth;
   late AnimationController _animationController;
   late CurvedAnimation _thumbAnimation;
   late double thumbDiameter;
+  double _currX = 0.0;
 
   @override
   void initState() {
@@ -202,13 +202,13 @@ class _FluidSliderState extends State<FluidSlider>
       if (widget.onChangeStart != null) {
         _handleDragStart(widget.value);
       }
-      _currX = _getGlobalToLocal(details.globalPosition).dx / _sliderWidth!;
+      _currX = _getGlobalToLocal(details.globalPosition).dx / _sliderWidth;
     }
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    if (_isInteractive) {
-      final double valueDelta = details.primaryDelta! / _sliderWidth!;
+    if (details.primaryDelta != null && _isInteractive) {
+      final double valueDelta = details.primaryDelta! / _sliderWidth;
       _currX += valueDelta;
 
       _handleChanged(_clamp(_currX));
@@ -236,21 +236,24 @@ class _FluidSliderState extends State<FluidSlider>
   }
 
   void _handleChanged(double value) {
-    assert(widget.onChanged != null);
-    final double lerpValue = _lerp(value);
-    if (lerpValue != widget.value) {
-      widget.onChanged!(lerpValue);
+    if (widget.onChanged != null) {
+      final double lerpValue = _lerp(value);
+      if (lerpValue != widget.value) {
+        widget.onChanged!(lerpValue);
+      }
     }
   }
 
   void _handleDragStart(double value) {
-    assert(widget.onChangeStart != null);
-    widget.onChangeStart!((value));
+    if (widget.onChangeStart != null) {
+      widget.onChangeStart!((value));
+    }
   }
 
   void _handleDragEnd(double value) {
-    assert(widget.onChangeEnd != null);
-    widget.onChangeEnd!((_lerp(value)));
+    if (widget.onChangeEnd != null) {
+      widget.onChangeEnd!((_lerp(value)));
+    }
   }
 
   // Returns a number between min and max, proportional to value, which must
@@ -319,7 +322,7 @@ class _FluidSliderState extends State<FluidSlider>
             constraints.hasBoundedWidth ? constraints.maxWidth : 200.0;
 
         //The width remaining for the thumb to be dragged upto.
-        remainingWidth = _sliderWidth! - thumbDiameter - 2 * thumbPadding;
+        remainingWidth = _sliderWidth - thumbDiameter - 2 * thumbPadding;
 
         //The position of the thumb control of the slider from max value.
         final double thumbPositionLeft =

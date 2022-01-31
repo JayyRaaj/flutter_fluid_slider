@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 
   @override
   HomePageState createState() {
-    return  HomePageState();
+    return HomePageState();
   }
 }
 
