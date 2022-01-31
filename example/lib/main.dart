@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fluid_slider/flutter_fluid_slider.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: HomePage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key key}) : super(key: key);
+
   @override
   HomePageState createState() {
-    return new HomePageState();
+    return  HomePageState();
   }
 }
 
@@ -43,7 +47,7 @@ class HomePageState extends State<HomePage> {
               min: 0.0,
               max: 100.0,
             ),
-            SizedBox(
+            const SizedBox(
               height: 100.0,
             ),
             FluidSlider(
@@ -57,16 +61,16 @@ class HomePageState extends State<HomePage> {
               max: 500.0,
               sliderColor: Colors.redAccent,
               thumbColor: Colors.amber,
-              start: Icon(
+              start: const Icon(
                 Icons.money_off,
                 color: Colors.white,
               ),
-              end: Icon(
+              end: const Icon(
                 Icons.attach_money,
                 color: Colors.white,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 100.0,
             ),
             FluidSlider(

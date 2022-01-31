@@ -63,12 +63,12 @@ class FluidSlider extends StatefulWidget {
   /// )
   /// ```
   ///
-  final Widget start;
+  final Widget? start;
 
   ///The widget to be displayed as the max label. For eg: an Icon can be displayed.
   ///
   ///If not provided the [max] value is displayed as text.
-  final Widget end;
+  final Widget? end;
 
   /// Called during a drag when the user is selecting a new value for the slider
   /// by dragging.
@@ -79,37 +79,37 @@ class FluidSlider extends StatefulWidget {
   ///
   /// If null, the slider will be displayed as disabled.
 
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? /*?*/ onChanged;
 
   /// Called when the user starts selecting a new value for the slider.
   ///
   /// The value passed will be the last [value] that the slider had before the
   /// change began.
-  final ValueChanged<double> onChangeStart;
+  final ValueChanged<double>? onChangeStart;
 
   /// Called when the user is done selecting a new value for the slider.
-  final ValueChanged<double> onChangeEnd;
+  final ValueChanged<double>? onChangeEnd;
 
   ///The styling of the min and max text that gets displayed on the slider
   ///
   ///If not provided the ancestor [Theme]'s [accentTextTheme] text style will be applied.
-  final TextStyle labelsTextStyle;
+  final TextStyle? labelsTextStyle;
 
   ///The styling of the current value text that gets displayed on the slider
   ///
   ///If not provided the ancestor [Theme]'s [textTheme.title] text style
   ///with bold will be applied .
-  final TextStyle valueTextStyle;
+  final TextStyle? valueTextStyle;
 
   ///The color of the slider.
   ///
   ///If not provided the ancestor [Theme]'s [primaryColor] will be applied.
-  final Color sliderColor;
+  final Color? sliderColor;
 
   ///The color of the thumb.
   ///
   ///If not provided the [Colors.white] will be applied.
-  final Color thumbColor;
+  final Color? thumbColor;
 
   ///Whether to display the first decimal value of the slider value
   ///
@@ -119,34 +119,37 @@ class FluidSlider extends StatefulWidget {
   ///Callback function to map the double values to String texts
   ///
   ///If null the value is converted to String based on [showDecimalValue]
-  final String Function(double) mapValueToString;
+  final String Function(double)? mapValueToString;
 
   ///The diameter of the thumb, it's also the height of the slider
   ///
   ///defaults to 60.0
   final double thumbDiameter;
 
-  const FluidSlider({
-    Key key,
-    @required this.value,
-    this.min = 0.0,
-    this.max = 1.0,
-    this.start,
-    this.end,
-    @required this.onChanged,
-    this.labelsTextStyle,
-    this.valueTextStyle,
-    this.onChangeStart,
-    this.onChangeEnd,
-    this.sliderColor,
-    this.thumbColor,
-    this.mapValueToString,
-    this.showDecimalValue = false,
-    this.thumbDiameter,
-  })  : assert(value != null),
-        assert(min != null),
-        assert(max != null),
-        assert(min <= max),
+  ///The custom Curves for Thumb Animation
+  ///
+  /// defaults to Curves.bounceOut,
+  final Curve thumbCurve;
+
+  const FluidSlider(
+      {Key? key,
+      required this.value,
+      this.min = 0.0,
+      this.max = 1.0,
+      this.start,
+      this.end,
+      this.onChanged,
+      this.labelsTextStyle,
+      this.valueTextStyle,
+      this.onChangeStart,
+      this.onChangeEnd,
+      this.sliderColor,
+      this.thumbColor,
+      this.mapValueToString,
+      this.showDecimalValue = false,
+      this.thumbDiameter = 60.0,
+      this.thumbCurve = Curves.bounceOut})
+      : assert(min <= max),
         assert(value >= min && value <= max),
         super(key: key);
   @override
@@ -155,30 +158,30 @@ class FluidSlider extends StatefulWidget {
 
 class _FluidSliderState extends State<FluidSlider>
     with SingleTickerProviderStateMixin {
-  double _sliderWidth;
+  double? _sliderWidth;
   double _currX = 0.0;
-  AnimationController _animationController;
-  CurvedAnimation _thumbAnimation;
-  double thumbDiameter;
+  late AnimationController _animationController;
+  late CurvedAnimation _thumbAnimation;
+  late double thumbDiameter;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     //The radius of the slider thumb control
-    thumbDiameter = widget.thumbDiameter ?? 60.0;
+    thumbDiameter = widget.thumbDiameter;
     _animationController = AnimationController(
       duration: Duration(milliseconds: 400),
       vsync: this,
     );
 
     _thumbAnimation = CurvedAnimation(
-      curve: Curves.bounceOut,
+      curve: widget.thumbCurve,
       parent: _animationController,
     );
   }
 
   @override
-  dispose() {
+  void dispose() {
     _animationController.dispose();
     super.dispose();
   }
@@ -199,13 +202,13 @@ class _FluidSliderState extends State<FluidSlider>
       if (widget.onChangeStart != null) {
         _handleDragStart(widget.value);
       }
-      _currX = _getGlobalToLocal(details.globalPosition).dx / _sliderWidth;
+      _currX = _getGlobalToLocal(details.globalPosition).dx / _sliderWidth!;
     }
   }
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
     if (_isInteractive) {
-      final double valueDelta = details.primaryDelta / _sliderWidth;
+      final double valueDelta = details.primaryDelta! / _sliderWidth!;
       _currX += valueDelta;
 
       _handleChanged(_clamp(_currX));
@@ -236,18 +239,18 @@ class _FluidSliderState extends State<FluidSlider>
     assert(widget.onChanged != null);
     final double lerpValue = _lerp(value);
     if (lerpValue != widget.value) {
-      widget.onChanged(lerpValue);
+      widget.onChanged!(lerpValue);
     }
   }
 
   void _handleDragStart(double value) {
     assert(widget.onChangeStart != null);
-    widget.onChangeStart((value));
+    widget.onChangeStart!((value));
   }
 
   void _handleDragEnd(double value) {
     assert(widget.onChangeEnd != null);
-    widget.onChangeEnd((_lerp(value)));
+    widget.onChangeEnd!((_lerp(value)));
   }
 
   // Returns a number between min and max, proportional to value, which must
@@ -275,7 +278,7 @@ class _FluidSliderState extends State<FluidSlider>
     }
   }
 
-  Color get _thumbColor {
+  Color? get _thumbColor {
     if (_isInteractive) {
       return widget.thumbColor ?? Colors.white;
     } else {
@@ -289,11 +292,11 @@ class _FluidSliderState extends State<FluidSlider>
     final TextStyle defaultStyle = widget.showDecimalValue
         ? Theme.of(context)
             .textTheme
-            .subhead
+            .subtitle1!
             .copyWith(fontWeight: FontWeight.bold)
         : Theme.of(context)
             .textTheme
-            .title
+            .headline6!
             .copyWith(fontWeight: FontWeight.bold);
 
     return widget.valueTextStyle ?? defaultStyle;
@@ -316,15 +319,15 @@ class _FluidSliderState extends State<FluidSlider>
             constraints.hasBoundedWidth ? constraints.maxWidth : 200.0;
 
         //The width remaining for the thumb to be dragged upto.
-        remainingWidth = _sliderWidth - thumbDiameter - 2 * thumbPadding;
+        remainingWidth = _sliderWidth! - thumbDiameter - 2 * thumbPadding;
 
         //The position of the thumb control of the slider from max value.
         final double thumbPositionLeft =
-            lerpDouble(thumbPadding, remainingWidth, thumbPosFactor);
+            lerpDouble(thumbPadding, remainingWidth, thumbPosFactor)!;
 
         //The position of the thumb control of the slider from min value.
         final double thumbPositionRight =
-            lerpDouble(remainingWidth, thumbPadding, thumbPosFactor);
+            lerpDouble(remainingWidth, thumbPadding, thumbPosFactor)!;
 
         //Start position of slider thumb.
         final RelativeRect beginRect = RelativeRect.fromLTRB(
@@ -353,7 +356,7 @@ class _FluidSliderState extends State<FluidSlider>
             ),
           ),
           child: Stack(
-            overflow: Overflow.visible,
+            clipBehavior: Clip.none,
             children: <Widget>[
               _MinMaxLabels(
                 textStyle: widget.labelsTextStyle,
@@ -367,7 +370,7 @@ class _FluidSliderState extends State<FluidSlider>
                 alignment: Alignment.centerRight,
                 child: widget.end,
                 value: widget.max,
-                padding: EdgeInsets.only(right: 15.0),
+                padding: const EdgeInsets.only(right: 15.0),
               ),
               PositionedTransition(
                 rect: thumbPosition,
@@ -401,7 +404,7 @@ class _FluidSliderState extends State<FluidSlider>
                         child: Center(
                           child: Text(
                             widget.mapValueToString != null
-                                ? widget.mapValueToString(widget.value)
+                                ? widget.mapValueToString!(widget.value)
                                 : widget.showDecimalValue
                                     ? widget.value.toStringAsFixed(1)
                                     : widget.value.toInt().toString(),
@@ -425,10 +428,13 @@ class _ThumbSplashPainter extends CustomPainter {
   final Animation showContact;
   //This is passed to calculate and compensate the value
   //of x for drawing the sticky fluid
-  final thumbPadding;
+  final double thumbPadding;
   final Color splashColor;
 
-  _ThumbSplashPainter({this.thumbPadding, this.showContact, this.splashColor});
+  _ThumbSplashPainter(
+      {required this.thumbPadding,
+      required this.showContact,
+      required this.splashColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -457,18 +463,18 @@ class _ThumbSplashPainter extends CustomPainter {
 
 class _MinMaxLabels extends StatelessWidget {
   final Alignment alignment;
-  final TextStyle textStyle;
-  final Widget child;
+  final TextStyle? textStyle;
+  final Widget? child;
   final double value;
   final EdgeInsets padding;
 
   const _MinMaxLabels({
-    Key key,
-    this.alignment,
+    Key? key,
+    required this.alignment,
     this.textStyle,
-    this.child,
-    this.value,
-    this.padding,
+    required this.child,
+    required this.value,
+    required this.padding,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -479,7 +485,10 @@ class _MinMaxLabels extends StatelessWidget {
         child: child ??
             Text(
               '${value.toInt()}',
-              style: textStyle ?? Theme.of(context).accentTextTheme.title,
+              style: textStyle ??
+                  Theme.of(context).textTheme.headline6!.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
             ),
       ),
     );
